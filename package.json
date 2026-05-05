@@ -1,0 +1,61 @@
+{
+  "name": "myeonho-dashboard",
+  "version": "1.1.0",
+  "description": "명호중 선생님 전용 대시보드",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder --win --x64",
+    "build:dir": "electron-builder --win --x64 --dir"
+  },
+  "dependencies": {
+    "electron-updater": "^6.3.0",
+    "koffi": "^2.16.1",
+    "playwright": "^1.59.1"
+  },
+  "devDependencies": {
+    "electron": "^31.0.0",
+    "electron-builder": "^24.0.0"
+  },
+  "build": {
+    "appId": "kr.hs.myeonho.dashboard",
+    "productName": "명호중 대시보드",
+    "copyright": "Copyright © 2026",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "autoLogin.js",
+      "renderer/**/*",
+      "package.json",
+      "dashboard_savedata.json"
+    ],
+    "publish": {
+      "provider": "github",
+      "owner": "whdlscjf99",
+      "repo": "myeongho-dashboard"
+    },
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "renderer/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "installerIcon": "renderer/icon.ico",
+      "uninstallerIcon": "renderer/icon.ico",
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "명호중 대시보드"
+    }
+  }
+}
