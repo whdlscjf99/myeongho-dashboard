@@ -76,33 +76,216 @@ function copyBrowserProfile(userData, browser = 'chrome') {
 }
 
 // ── 팝업 핸들러 ──────────────────────────────────────────
-async function handleNeisPopups(page) {
+async function handleNeisPopups(page, popupCloseOption = 'close', send = null) {
+  const log = (step, msg) => { 
+    if (send) send(step, msg); 
+    else console.log(`[${step}] ${msg}`); 
+  };
+  
   try {
+    log('popup', '공지사항 처리 시작');
     await page.waitForLoadState('domcontentloaded', { timeout: 30000 }).catch(() => {});
-    await page.waitForTimeout(3000);
-    const closeSelectors = [
-      '.cl-dialog-close', '.cl-popup-close', '.ui-dialog-titlebar-close',
-      'button[title="닫기"]', 'button[aria-label="닫기"]', '.popClose', '.btn-close',
+    
+    // 공지사항이 뜰 때까지 최대 10초 대기
+    log('popup', '초기 5초 대기 중...');
+    await page.waitForTimeout(5000);
+    
+    // 공지사항 팝업이 실제로 나타날 때까지 최대 10번 시도 (각 1초씩)
+    log('popup', '공지사항 팝업 감지 시작 (최대 10초)');
+    
+    // 현재 페이지 URL 확인
+    try {
+      const currentUrl = await page.url();
+      log('popup', `현재 페이지 URL: ${currentUrl}`);
+    } catch (e) {
+      log('popup', `URL 확인 오류: ${e.message}`);
+    }
+    
+    // modal-hidden 확인
+    try {
+      const modalHidden = await page.$('.modal-hidden');
+      if (modalHidden) {
+        const mhDisplay = await modalHidden.evaluate(el => window.getComputedStyle(el).display);
+        const mhVisibility = await modalHidden.evaluate(el => window.getComputedStyle(el).visibility);
+        log('popup', `modal-hidden 발견: display=${mhDisplay}, visibility=${mhVisibility}`);
+      } else {
+        log('popup', 'modal-hidden 요소를 찾을 수 없음');
+      }
+    } catch (e) {
+      log('popup', `modal-hidden 확인 오류: ${e.message}`);
+    }
+    
+    let popupFound = false;
+    const popupSelectors = [
+      '#popupSlider',
+      '.popup-zone-layer-popup-bg.popup.main.noticePop',
+      '.popup-zone-layer-popup-bg',
+      '.popup.main',
+      '.noticePop',
+      'button.btn-3x',
+      '.popup',
+      '[class*="popup"]',
     ];
-    for (let i = 0; i < 10; i++) {
-      let closed = false;
-      for (const sel of closeSelectors) {
+    
+    for (let attempt = 0; attempt < 10; attempt++) {
+      log('popup', `공지사항 감지 시도 ${attempt + 1}/10...`);
+      for (const selector of popupSelectors) {
+        try {
+          const popup = await page.$(selector);
+          if (popup) {
+            // isVisible 체크 없이 존재만 확인
+            const display = await popup.evaluate(el => window.getComputedStyle(el).display);
+            const visibility = await popup.evaluate(el => window.getComputedStyle(el).visibility);
+            log('popup', `팝업 발견 (${selector}): display=${display}, visibility=${visibility}`);
+            
+            if (display !== 'none' && visibility !== 'hidden') {
+              log('popup', `✅ 공지사항 감지! (셀렉터: ${selector}, ${attempt + 1}번째 시도)`);
+              popupFound = true;
+              break;
+            }
+          }
+        } catch (e) {
+          log('popup', `셀렉터 ${selector} 오류: ${e.message}`);
+        }
+      }
+      if (popupFound) break;
+      await page.waitForTimeout(1000);
+    }
+    
+    if (!popupFound) {
+      log('popup', '공지사항 팝업 없음 - 처리 종료');
+      return;
+    }
+    
+    // 공지사항 팝업 닫기 옵션 처리
+    if (popupCloseOption !== 'none') {
+      try {
+        log('popup', `체크박스 처리: ${popupCloseOption}`);
+        // 체크박스 선택 - 레이블 클릭 방식
+        if (popupCloseOption === 'today') {
+          // "오늘하루 이창 열지 않기" 레이블 클릭
+          const todayLabel = await page.$('label[for="day0"]');
+          if (todayLabel) {
+            await todayLabel.click();
+            log('popup', '✅ 오늘 하루 안 보기 선택 완료 (레이블 클릭)');
+            await page.waitForTimeout(300);
+          } else {
+            // 레이블이 없으면 체크박스 직접
+            const todayCheckbox = await page.$('input[type="checkbox"][name="day"]');
+            if (todayCheckbox) {
+              await todayCheckbox.check();
+              log('popup', '✅ 오늘 하루 안 보기 체크 완료 (체크박스)');
+              await page.waitForTimeout(300);
+            } else {
+              log('popup', '⚠️ 오늘 하루 체크박스를 찾을 수 없음');
+            }
+          }
+        } else if (popupCloseOption === 'week') {
+          // "1주일동안 열지 않기" 레이블 클릭
+          const weekLabel = await page.$('label[for="week0"]');
+          if (weekLabel) {
+            await weekLabel.click();
+            log('popup', '✅ 1주일 안 보기 선택 완료 (레이블 클릭)');
+            await page.waitForTimeout(300);
+          } else {
+            // 레이블이 없으면 체크박스 직접
+            const weekCheckbox = await page.$('input[type="checkbox"][name="week"]');
+            if (weekCheckbox) {
+              await weekCheckbox.check();
+              log('popup', '✅ 1주일 안 보기 체크 완료 (체크박스)');
+              await page.waitForTimeout(300);
+            } else {
+              log('popup', '⚠️ 1주일 체크박스를 찾을 수 없음');
+            }
+          }
+        }
+        await page.waitForTimeout(500);
+      } catch (e) {
+        log('popup', `체크박스 오류: ${e.message}`);
+      }
+    }
+    
+    // 닫기 버튼 클릭 (최대 10번 재시도)
+    log('popup', '닫기 버튼 클릭 시작 (최대 10번 재시도)');
+    let closed = false;
+    const closeButtonSelectors = [
+      'button.pop-bottom-close.btn-2x',
+      '.pop-bottom-close',
+      'button.pop-bottom-close',
+      '.header button.btn.btn-secondary.btn-3x[aria-label="닫기"]',
+      'button.btn.btn-secondary.btn-3x[aria-label="닫기"]',
+      'button.btn-3x[aria-label="닫기"]',
+      '.header .btn-3x',
+      'button.btn-3x',
+      'button.btn-secondary.btn-3x',
+      '.cl-dialog-close',
+      'button:has-text("닫기")',
+      '[class*="close"][aria-label="닫기"]',
+    ];
+    
+    for (let retry = 0; retry < 10; retry++) {
+      for (const selector of closeButtonSelectors) {
+        try {
+          const btns = await page.$$(selector);
+          if (btns.length > 0) {
+            log('popup', `셀렉터 "${selector}": ${btns.length}개 발견 (시도 ${retry + 1}/10)`);
+          }
+          for (const btn of btns) {
+            const isVisible = await btn.isVisible().catch(() => false);
+            if (isVisible) {
+              await btn.click();
+              log('popup', `✅ 닫기 버튼 클릭 성공! (${selector})`);
+              await page.waitForTimeout(500);
+              closed = true;
+              break;
+            }
+          }
+          if (closed) break;
+        } catch (e) {
+          log('popup', `셀렉터 오류 ${selector}: ${e.message}`);
+        }
+      }
+      if (closed) break;
+      if (retry < 9) {
+        await page.waitForTimeout(1000);
+      }
+    }
+    
+    if (!closed) {
+      log('popup', '⚠️ 닫기 버튼을 찾지 못했습니다!');
+    }
+    
+    // 추가 팝업 닫기
+    log('popup', '추가 팝업 확인 중...');
+    const additionalCloseSelectors = [
+      '.cl-dialog-close', '.cl-popup-close', 
+      'button[title="닫기"]',
+      '.popClose',
+      '.btn-close',
+    ];
+    for (let i = 0; i < 5; i++) {
+      let additionalClosed = false;
+      for (const sel of additionalCloseSelectors) {
         try {
           const btn = await page.$(sel);
           if (btn && await btn.isVisible().catch(() => false)) {
             await btn.click();
+            log('popup', `추가 팝업 닫기: ${sel}`);
             await page.waitForTimeout(300);
-            closed = true;
+            additionalClosed = true;
             break;
           }
         } catch {}
       }
-      if (!closed) break;
+      if (!additionalClosed) break;
     }
-  } catch {}
+    log('popup', '공지사항 처리 완료');
+  } catch (e) {
+    log('popup', `전체 오류: ${e.message}`);
+  }
 }
 
-async function handleEdufinePopups(page) {
+async function handleEdufinePopups(page, popupCloseOption = 'close', send = null) {
   try {
     await page.waitForLoadState('domcontentloaded', { timeout: 30000 }).catch(() => {});
     try {
@@ -168,7 +351,7 @@ async function showSuccessAlert(page) {
 
 
 // ── 메인 실행 함수 ────────────────────────────────────────
-async function executeAutoLogin({ userData, certName, password, neisOrder = 0, targetSystem, browser = 'chrome', onStatus }) {
+async function executeAutoLogin({ userData, certName, password, neisOrder = 0, targetSystem, browser = 'chrome', popupCloseOption = 'close', onStatus }) {
   const { chromium } = require('playwright');
   const target = TARGET_CONFIG[targetSystem];
   if (!target) throw new Error(`지원하지 않는 대상: ${targetSystem}`);
@@ -186,6 +369,9 @@ async function executeAutoLogin({ userData, certName, password, neisOrder = 0, t
   const mainTask = async () => {
     send('profile', '브라우저 프로필 준비 중...');
     const tempProfile = copyBrowserProfile(userData, browser);
+    
+    // 다운로드 경로를 사용자의 Downloads 폴더로 설정
+    const downloadsPath = path.join(os.homedir(), 'Downloads');
 
     send('launch', `${browser === 'edge' ? 'Edge' : 'Chrome'} 실행 중...`);
     context = await chromium.launchPersistentContext(tempProfile, {
@@ -206,6 +392,9 @@ async function executeAutoLogin({ userData, certName, password, neisOrder = 0, t
       ignoreHTTPSErrors: true,
       ignoreDefaultArgs: ['--enable-automation', '--no-sandbox'],
       viewport: null,
+      // 다운로드 설정
+      acceptDownloads: true,
+      downloadsPath: downloadsPath,
     });
 
     const page = context.pages()[0] || await context.newPage();
@@ -270,37 +459,109 @@ async function executeAutoLogin({ userData, certName, password, neisOrder = 0, t
     let success = false;
     for (let attempt = 0; attempt < 2; attempt++) {
       try {
+        send('target', `시도 ${attempt + 1}/2: "${target.menuText}" 버튼 찾는 중...`);
         const pagesBefore = context.pages().length;
-        await page.click(`//a[@class='menuBtn' and text()='${target.menuText}']`, { timeout: 30000 });
+        
+        // 여러 셀렉터 시도
+        const selectors = [
+          `a.menuBtn:has-text("${target.menuText}")`,
+          `//a[@class='menuBtn' and normalize-space(text())='${target.menuText}']`,
+          `//a[@class='menuBtn' and contains(normalize-space(text()), '${target.menuText}')]`,
+          `a.menuBtn`,  // 모든 menuBtn 찾아서 텍스트 비교
+        ];
+        
+        let clicked = false;
+        for (const selector of selectors) {
+          try {
+            send('target', `셀렉터 시도: ${selector.substring(0, 60)}...`);
+            
+            if (selector === 'a.menuBtn') {
+              // 모든 menuBtn을 찾아서 텍스트로 비교
+              const buttons = await page.$$('a.menuBtn');
+              send('target', `a.menuBtn ${buttons.length}개 발견, 텍스트 비교 중...`);
+              for (let i = 0; i < buttons.length; i++) {
+                const btn = buttons[i];
+                const text = await btn.textContent();
+                const trimmed = text?.trim();
+                send('target', `버튼 ${i + 1}/${buttons.length}: "${trimmed}"`);
+                if (trimmed === target.menuText || trimmed?.includes(target.menuText)) {
+                  send('target', `✅ 텍스트 일치! "${trimmed}" 클릭 시도 중...`);
+                  try {
+                    // 버튼으로 스크롤
+                    await btn.scrollIntoViewIfNeeded().catch(() => {});
+                    await page.waitForTimeout(500);
+                    
+                    // 먼저 일반 클릭 시도
+                    try {
+                      await btn.click({ timeout: 3000 });
+                      send('target', `✅ 클릭 성공!`);
+                      clicked = true;
+                    } catch {
+                      // 일반 클릭 실패 시 강제 클릭
+                      send('target', `일반 클릭 실패, 강제 클릭 시도...`);
+                      await btn.evaluate(el => el.click());
+                      send('target', `✅ 강제 클릭 성공!`);
+                      clicked = true;
+                    }
+                    break;
+                  } catch (e) {
+                    send('target', `⚠️ 클릭 실패: ${e.message}`);
+                  }
+                }
+              }
+            } else {
+              await page.click(selector, { timeout: 5000 });
+              clicked = true;
+            }
+            
+            if (clicked) break;
+          } catch {}
+        }
+        
+        if (!clicked) {
+          throw new Error(`"${target.menuText}" 버튼을 찾을 수 없습니다`);
+        }
+        
+        send('target', `✅ "${target.menuText}" 버튼 클릭 완료`);
         await page.waitForTimeout(3000);
         const allPages = context.pages();
         let targetPage = allPages.length > pagesBefore ? allPages[allPages.length - 1] : page;
+        send('target', `새 탭 ${allPages.length > pagesBefore ? '열림' : '없음'}, 페이지 수: ${allPages.length}`);
 
         // 나이스: SSO 인증 중간 페이지(idp1-pen.neis.go.kr) → 실제 메인(pen.neis.go.kr) 이동 대기
         if (target.finalUrl) {
           send('navigate', `${target.label} 메인 페이지 이동 중...`);
           try {
-            await targetPage.waitForURL(`**/${target.finalUrl}**`, { timeout: 30000 });
+            await targetPage.waitForURL(`**/${target.finalUrl}**`, { timeout: 15000 });
+            send('navigate', '✅ 메인 페이지 도달');
           } catch {
+            send('navigate', 'URL 대기 실패, 셀렉터로 확인 중...');
             // URL 매칭 실패 시 waitSelector로 대기
-            await targetPage.waitForSelector(target.waitSelector, { timeout: 20000 }).catch(() => {});
+            await targetPage.waitForSelector(target.waitSelector, { timeout: 10000 }).catch(() => {});
           }
         } else {
           await targetPage.waitForLoadState('domcontentloaded').catch(() => {});
         }
 
         send('popup', '공지 팝업 처리 중...');
-        await target.popupHandler(targetPage);
+        await target.popupHandler(targetPage, popupCloseOption, send);
         await showSuccessAlert(targetPage);
         success = true;
         break;
-      } catch {
+      } catch (e) {
+        send('target', `⚠️ 진입 시도 ${attempt + 1} 실패: ${e.message}`);
         if (attempt === 0) {
+          send('target', '중간 팝업 확인 중...');
           let popupCount = 0;
           while (popupCount < 5) {
             try {
               const closeBtn = await page.$('.btn-3x, .pop-bottom-close');
-              if (closeBtn) { await closeBtn.click(); popupCount++; await page.waitForTimeout(500); }
+              if (closeBtn) { 
+                await closeBtn.click(); 
+                popupCount++; 
+                send('target', `중간 팝업 ${popupCount}개 닫음`);
+                await page.waitForTimeout(500); 
+              }
               else break;
             } catch { break; }
           }

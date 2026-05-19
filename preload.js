@@ -4,6 +4,10 @@ const { contextBridge, ipcRenderer } = require('electron');
 
 contextBridge.exposeInMainWorld('electronAPI', {
 
+  // ── 범용 invoke (channel, ...args) ───────────────────────
+  // window.electronAPI.invoke('comcigan:searchTeacher', {...}) 형태로 사용
+  invoke: (channel, ...args) => ipcRenderer.invoke(channel, ...args),
+
   // ── 상태 저장/로드 ──────────────────────────────────────
   loadState:     ()       => ipcRenderer.invoke('state:load'),
   saveState:     (data)   => ipcRenderer.invoke('state:save', data),
@@ -52,9 +56,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
   onWidgetClick:      (cb) => ipcRenderer.on('widget-click',      (_, d) => cb(d)),
 
   // ── 자동 로그인 ──────────────────────────────────────────
-  autoLoginExecute:      (params) => ipcRenderer.invoke('autoLogin:execute', params),
-  autoLoginLoadSettings: ()       => ipcRenderer.invoke('autoLogin:loadSettings'),
-  autoLoginSaveSettings: (data)   => ipcRenderer.invoke('autoLogin:saveSettings', data),
+  autoLoginExecute:        (params) => ipcRenderer.invoke('autoLogin:execute', params),
+  autoLoginLoadSettings:   ()       => ipcRenderer.invoke('autoLogin:loadSettings'),
+  autoLoginSaveSettings:   (data)   => ipcRenderer.invoke('autoLogin:saveSettings', data),
+  deleteAutoLoginSettings: ()       => ipcRenderer.invoke('autoLogin:deleteSettings'),
   onAutoLoginStatus: (cb) => {
     const handler = (_, d) => cb(d);
     ipcRenderer.on('autoLogin:status', handler);
@@ -70,5 +75,3 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
   isElectron: true
 });
-
-startComciganServer: () => ipcRenderer.invoke('start-comcigan-server')

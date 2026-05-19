@@ -1,15 +1,17 @@
 {
   "name": "myeonho-dashboard",
-  "version": "1.1.0",
+  "version": "1.0.0",
   "description": "명호중 선생님 전용 대시보드",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
     "build": "electron-builder --win --x64",
+    "build:release": "node build-release.js",
     "build:dir": "electron-builder --win --x64 --dir"
   },
   "dependencies": {
     "electron-updater": "^6.3.0",
+    "iconv-lite": "^0.7.2",
     "koffi": "^2.16.1",
     "playwright": "^1.59.1"
   },
@@ -21,6 +23,7 @@
     "appId": "kr.hs.myeonho.dashboard",
     "productName": "명호중 대시보드",
     "copyright": "Copyright © 2026",
+    "asar": false,
     "directories": {
       "output": "dist"
     },
@@ -28,6 +31,8 @@
       "main.js",
       "preload.js",
       "autoLogin.js",
+      "desktopWidget.js",
+      "comcigan_api.py",
       "renderer/**/*",
       "package.json",
       "dashboard_savedata.json"
@@ -38,6 +43,8 @@
       "repo": "myeongho-dashboard"
     },
     "win": {
+      "executableName": "명호중 대시보드",
+      "artifactName": "myeonho-dashboard-setup-${version}.exe",
       "target": [
         {
           "target": "nsis",
@@ -49,6 +56,7 @@
       "icon": "renderer/icon.ico"
     },
     "nsis": {
+      "artifactName": "myeonho-dashboard-setup-${version}.exe",
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
       "installerIcon": "renderer/icon.ico",

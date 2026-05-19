@@ -1,0 +1,134 @@
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- 개발중 기능: 공지사항 처리 UI (숨김 처리되어 사용 안함) -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+
+<!-- 로그인 실행 모달 내 공지사항 옵션 (라인 1781~1805) -->
+<div style="border-top:1px solid var(--border);padding-top:12px;margin-top:4px;">
+  <div style="font-size:0.67em;font-weight:800;color:var(--text-sub);margin-bottom:8px;">📢 나이스 공지사항 처리</div>
+  <div style="display:flex;gap:6px;font-size:0.63em;">
+    <label style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:10px;background:var(--bg-inner);border:2px solid var(--border);border-radius:8px;cursor:pointer;transition:all 0.2s;" 
+      onmouseover="this.style.background='var(--accent)';this.style.borderColor='var(--accent)';this.style.color='#fff';"
+      onmouseout="if(!this.querySelector('input').checked){this.style.background='var(--bg-inner)';this.style.borderColor='var(--border)';this.style.color='var(--text-main)';}">
+      <input type="radio" name="popup-close-quick" value="close" checked style="width:16px;height:16px;">
+      <span style="font-weight:600;line-height:1.3;">공지사항<br>닫기</span>
+    </label>
+    <label style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:10px;background:var(--bg-inner);border:2px solid var(--border);border-radius:8px;cursor:pointer;transition:all 0.2s;"
+      onmouseover="this.style.background='var(--accent)';this.style.borderColor='var(--accent)';this.style.color='#fff';"
+      onmouseout="if(!this.querySelector('input').checked){this.style.background='var(--bg-inner)';this.style.borderColor='var(--border)';this.style.color='var(--text-main)';}">
+      <input type="radio" name="popup-close-quick" value="today" style="width:16px;height:16px;">
+      <span style="font-weight:600;line-height:1.3;">오늘 하루<br>안 보기</span>
+    </label>
+    <label style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:10px;background:var(--bg-inner);border:2px solid var(--border);border-radius:8px;cursor:pointer;transition:all 0.2s;"
+      onmouseover="this.style.background='var(--accent)';this.style.borderColor='var(--accent)';this.style.color='#fff';"
+      onmouseout="if(!this.querySelector('input').checked){this.style.background='var(--bg-inner)';this.style.borderColor='var(--border)';this.style.color='var(--text-main)';}">
+      <input type="radio" name="popup-close-quick" value="week" style="width:16px;height:16px;">
+      <span style="font-weight:600;line-height:1.3;">1주일<br>안 보기</span>
+    </label>
+  </div>
+</div>
+
+<!-- 자동 로그인 설정 모달 내 공지사항 옵션 (라인 1840~1860) -->
+<div style="margin-top:8px;border-top:1px solid var(--border);padding-top:12px;">
+  <div style="font-size:0.74em;font-weight:700;color:var(--text-sub);margin-bottom:8px;">📢 업무포털 공지사항 처리</div>
+  <div style="display:flex;flex-direction:column;gap:6px;font-size:0.68em;">
+    <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+      <input type="radio" name="popup-close-option" value="close" checked style="width:16px;height:16px;">
+      <span>그냥 닫기</span>
+    </label>
+    <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+      <input type="radio" name="popup-close-option" value="today" style="width:16px;height:16px;">
+      <span>오늘 하루 열지 않기</span>
+    </label>
+    <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+      <input type="radio" name="popup-close-option" value="week" style="width:16px;height:16px;">
+      <span>1주일 동안 열지 않기</span>
+    </label>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- 개발중 기능: 컴시간 관련 (사용하지 않는 체크박스 및 input 필드) -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+
+<!-- 컴시간 연동 사용 체크박스 (제거됨) -->
+<div style="margin-bottom:8px;">
+  <label style="display:flex;align-items:center;gap:6px;cursor:pointer;">
+    <input type="checkbox" id="use-comcigan" onchange="toggleComcigan()" style="width:16px;height:16px;">
+    <span style="font-weight:700;">컴시간 연동 사용</span>
+  </label>
+</div>
+
+<!-- 컴시간 IP/포트/학교명 입력 (제거됨 - 별도 버튼으로 대체) -->
+<div style="display:grid;grid-template-columns:2fr 1fr;gap:6px;margin-bottom:6px;">
+  <div>
+    <div style="font-weight:700;margin-bottom:4px;font-size:.88em;">일과서버 IP</div>
+    <input id="comcigan-ip" class="input-box" placeholder="예: 10.73.65.56">
+  </div>
+  <div>
+    <div style="font-weight:700;margin-bottom:4px;font-size:.88em;">포트</div>
+    <input id="comcigan-port" class="input-box" placeholder="2083">
+  </div>
+</div>
+<div>
+  <div style="font-weight:700;margin-bottom:4px;font-size:.88em;">학교명</div>
+  <input id="comcigan-school" class="input-box" value="명호중학교" readonly style="background:var(--bg-inner);cursor:not-allowed;">
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- 제거할 JavaScript 함수들 -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+
+<script>
+// toggleComcigan 함수 (사용 안함)
+function toggleComcigan() {
+  const checked = document.getElementById('use-comcigan').checked;
+  document.getElementById('comcigan-settings').style.display = checked ? 'block' : 'none';
+  _ls.set('use_comcigan', checked);
+}
+
+// 구버전 saveComciganSettings (IP/포트 직접 입력)
+function saveComciganSettings_OLD() {
+  const ip = document.getElementById('comcigan-ip').value.trim();
+  const port = document.getElementById('comcigan-port').value.trim();
+  const school = document.getElementById('comcigan-school').value.trim();
+  const teacher = document.getElementById('comcigan-teacher').value.trim();
+  
+  if (!ip || !port || !school || !teacher) {
+    alert('모든 항목을 입력하세요');
+    return;
+  }
+  
+  _ls.set('comcigan_ip', ip);
+  _ls.set('comcigan_port', port);
+  _ls.set('comcigan_school', school);
+  _ls.set('comcigan_teacher', teacher);
+  
+  fetchComcigan();
+}
+
+// 구버전 openComciganModal (체크박스 확인)
+function openComciganModal_OLD() {
+  const useComcigan = _ls.get('use_comcigan') !== 'false';
+  document.getElementById('use-comcigan').checked = useComcigan;
+  document.getElementById('comcigan-settings').style.display = useComcigan ? 'block' : 'none';
+  
+  if (useComcigan) {
+    document.getElementById('comcigan-ip').value = _ls.get('comcigan_ip') || '10.73.65.56';
+    document.getElementById('comcigan-port').value = _ls.get('comcigan_port') || '2083';
+    document.getElementById('comcigan-school').value = _ls.get('comcigan_school') || '명호중학교';
+    document.getElementById('comcigan-teacher').value = _ls.get('comcigan_teacher') || '';
+    
+    const teacher = _ls.get('comcigan_teacher');
+    
+    if (teacher) {
+      fetchComcigan();
+    } else {
+      document.getElementById('comcigan-display').innerHTML = '<div style="text-align:center;color:var(--text-sub);padding:20px;">교사명을 입력하고 저장하세요</div>';
+    }
+  } else {
+    document.getElementById('comcigan-display').innerHTML = '<div style="text-align:center;color:var(--text-sub);padding:20px;">컴시간 연동을 활성화하세요</div>';
+  }
+  
+  document.getElementById('comcigan-modal').style.display = 'flex';
+}
+</script>

@@ -1,0 +1,38 @@
+# Dependencies
+node_modules/
+package-lock.json
+
+# Build outputs
+dist/
+out/
+build/
+*.exe
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Environment
+.env
+.env.local
+
+# Electron
+*.asar
+
+# 민감 데이터 및 백업 파일
+dashboard_savedata.json
+dashboard_backup_*.json
+*.backup
+*.backup.json
+autologin_settings.json
+sticky_notes.json
+window_bounds.json
+dashboard.log

@@ -1,0 +1,20 @@
+{
+  "memo_text": "",
+  "local_date_tasks": [],
+  "auto_checked": {},
+  "saved_at": "",
+  "onboardingCompleted": false,
+  "settings": {
+    "gcal_work_calendar_id": "",
+    "gcal_holiday_calendar_id": "",
+    "gcal_academic_calendar_id": "",
+    "gcal_api_key": "",
+    "meal_office_code": "",
+    "meal_school_code": "",
+    "meal_api_key": "",
+    "anthropic_api_key": "",
+    "neis_teacher_name": "",
+    "neis_class_grade": "",
+    "neis_class_room": ""
+  }
+}
