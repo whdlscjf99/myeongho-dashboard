@@ -338,7 +338,9 @@ ipcMain.handle('settings:save', (_, payload) => {
   const allowed = [
     'gcal_work_calendar_id', 'gcal_holiday_calendar_id', 'gcal_academic_calendar_id',
     'gcal_api_key', 'meal_office_code', 'meal_school_code', 'meal_api_key',
-    'anthropic_api_key', 'neis_teacher_name', 'neis_class_grade', 'neis_class_room'
+    'anthropic_api_key', 'neis_teacher_name', 'neis_class_grade', 'neis_class_room',
+    'school_name', 'school_code', 'school_office_code', 'school_homepage',
+    'comcigan_url'
   ];
   const current = state.settings || {};
   for (const k of allowed) { if (k in payload) current[k] = payload[k]; }
@@ -391,7 +393,9 @@ ipcMain.handle('onboarding:complete', (_, settingsPayload) => {
     const allowed = [
       'gcal_work_calendar_id', 'gcal_holiday_calendar_id', 'gcal_academic_calendar_id',
       'gcal_api_key', 'meal_office_code', 'meal_school_code', 'meal_api_key',
-      'anthropic_api_key', 'neis_teacher_name', 'neis_class_grade', 'neis_class_room'
+      'anthropic_api_key', 'neis_teacher_name', 'neis_class_grade', 'neis_class_room',
+      'school_name', 'school_code', 'school_office_code', 'school_homepage',
+      'comcigan_url'
     ];
     for (const k of allowed) { if (k in settingsPayload) current[k] = settingsPayload[k]; }
     state.settings = current;
@@ -712,7 +716,8 @@ app.on('before-quit', () => {
 });
 
 // ── 컴시간 직접 연동 (Flask 없이 순수 JS) ───────────────────
-const COMCIGAN_URL = 'http://222.106.100.23:4082';
+// 컴시간 URL (settings에서 로드, 없으면 기본값)
+let COMCIGAN_URL = 'http://222.106.100.23:4082';
 let comciganCache = null;
 let comciganCacheTime = 0;
 const COMCIGAN_CACHE_TTL = 30 * 60 * 1000; // 30분
@@ -793,9 +798,18 @@ async function fetchComciganTimetable(sccode) {
   return result;
 }
 
-// 명호중학교 고정 학교코드 (학교 선택 기능 개발 전까지 하드코딩)
-// 컴시간 sccode: 실제 실행 시 searchTeacher가 sccode 없으면 여기서 반환
-const DEFAULT_SCHOOL = { name: '명호중학교', sccode: null }; // sccode는 첫 검색 시 캐싱
+// 학교 정보 (settings에서 로드, 없으면 기본값)
+let DEFAULT_SCHOOL = { name: '명호중학교', sccode: null };
+
+// 앱 시작 시 settings에서 로드
+(function loadSchoolSettings() {
+  try {
+    const state = loadState();
+    const s = state.settings || {};
+    if (s.comcigan_url) COMCIGAN_URL = s.comcigan_url;
+    if (s.school_name) DEFAULT_SCHOOL.name = s.school_name;
+  } catch(e) {}
+})();
 
 ipcMain.handle('comcigan:getDefaultSchool', () => {
   return { ok: true, sccode: DEFAULT_SCHOOL.sccode, name: DEFAULT_SCHOOL.name };
@@ -1006,5 +1020,18 @@ ipcMain.handle('comcigan:clearCache', () => {
   comciganCache = null;
   comciganCacheTime = 0;
   writeLog('INFO', 'comcigan', '캐시 초기화');
+  return { ok: true };
+});
+
+// 컴시간 URL/학교 변경
+ipcMain.handle('comcigan:setConfig', (_, { url, schoolName }) => {
+  if (url) COMCIGAN_URL = url;
+  if (schoolName) {
+    DEFAULT_SCHOOL.name = schoolName;
+    DEFAULT_SCHOOL.sccode = null; // 학교 바뀌면 sccode 초기화
+  }
+  comciganCache = null;
+  comciganCacheTime = 0;
+  writeLog('INFO', 'comcigan', `설정 변경 - URL: ${COMCIGAN_URL}, 학교: ${DEFAULT_SCHOOL.name}`);
   return { ok: true };
 });

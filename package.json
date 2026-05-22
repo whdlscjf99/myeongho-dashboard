@@ -1,6 +1,6 @@
 {
   "name": "myeonho-dashboard",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "명호중 선생님 전용 대시보드",
   "main": "main.js",
   "scripts": {

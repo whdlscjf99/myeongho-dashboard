@@ -1230,7 +1230,6 @@ button.password-set-btn,
       <button class="card-ctrl-btn" onclick="setMealDayOffset(1)">내일</button>
       <button class="card-ctrl-btn icon-btn" onclick="adjustCardFontSize('meal',-1)">🔍−</button>
       <button class="card-ctrl-btn icon-btn" onclick="adjustCardFontSize('meal',1)">🔍+</button>
-      <button class="card-ctrl-btn" onclick="showMealSettingsPlaceholder()">설정</button>
     </div>
   </div>
   <div id="meal-area" style="flex:1;min-height:0;display:flex;flex-direction:column;padding:4px 2px;overflow:hidden;">로딩 중...</div>
@@ -1246,6 +1245,8 @@ button.password-set-btn,
 </div>
 
   </div>
+</div><!-- /protected-area -->
+</div><!-- /dashboard-shell -->
 
 <!-- ── 화면 잠금 제어 모달 (비밀번호 설정/잠금 해제) ─────────── -->
 <div id="lock-control-panel" class="modal" style="display:none;pointer-events:auto;" onclick="closeLockPasswordPanel()">
@@ -1452,6 +1453,7 @@ button.password-set-btn,
       <button class="btn-mini settings-main-btn" onclick="openDataManagementModal()"><span style="font-size:0.95em;">💾</span><span style="font-size:1.1em;">데이터 관리</span></button>
       <button class="btn-mini settings-main-btn" onclick="openThemeSettingsModal()"><span style="font-size:0.95em;">🎨</span><span style="font-size:1.1em;">테마 설정</span></button>
       <button class="btn-mini settings-main-btn" onclick="openDisplaySettingsModal()"><span style="font-size:0.95em;">🖥️</span><span style="font-size:1.1em;">화면 크기</span></button>
+      <button class="btn-mini settings-main-btn" onclick="openSchoolSelectModal()"><span style="font-size:0.95em;">🏫</span><span style="font-size:1.1em;">소속교 설정</span></button>
     </div>
 
     <!-- 구분선 -->
@@ -1488,6 +1490,50 @@ button.password-set-btn,
     <div style="display:flex;justify-content:flex-end;">
       <button class="btn-mini" onclick="resetAllSettings()" style="color:#c0392b;font-size:.82em;font-weight:700;"><span style="font-size:0.95em;">🗑️</span> <span style="font-size:1.1em;">전체 초기화</span></button>
     </div>
+  </div>
+</div>
+
+<!-- ── 소속교 설정 모달 ──────────────────────────────────── -->
+<div id="school-select-modal" class="modal" style="z-index:10001;">
+  <div class="modal-card" style="width:560px;max-width:96vw;" onclick="event.stopPropagation()">
+    <div class="header-row">
+      <h3>🏫 소속교 설정</h3>
+      <button class="btn-mini" onclick="closeSchoolSelectModal()">닫기</button>
+    </div>
+
+    <!-- 현재 설정 -->
+    <div id="school-current-info" style="font-size:.8em;color:var(--text-sub);padding:8px 12px;background:var(--bg-inner);border-radius:10px;margin-bottom:12px;"></div>
+
+    <!-- 학교 검색 -->
+    <div style="font-size:.85em;font-weight:900;color:var(--accent);margin-bottom:6px;">🔍 학교 검색</div>
+    <div style="display:flex;gap:8px;margin-bottom:10px;">
+      <input id="school-search-input" class="input-box" type="text" placeholder="학교명 입력 (예: 명호중)" style="flex:1;font-size:.9em;"
+        onkeypress="if(event.key==='Enter') searchSchoolNEIS()">
+      <button class="btn-mini" onclick="searchSchoolNEIS()" style="padding:0 16px;">검색</button>
+    </div>
+    <div id="school-search-results" style="max-height:200px;overflow-y:auto;display:flex;flex-direction:column;gap:6px;margin-bottom:14px;"></div>
+
+    <!-- 구분선 -->
+    <div style="border-top:1px solid var(--border);margin:8px 0;"></div>
+
+    <!-- 컴시간 설정 -->
+    <div style="font-size:.85em;font-weight:900;color:var(--accent);margin-bottom:6px;">📡 컴시간 서버 설정</div>
+    <div style="font-size:.72em;color:var(--text-sub);margin-bottom:8px;">컴시간알리미를 사용하는 학교만 입력하세요.</div>
+    <div style="display:flex;gap:6px;align-items:center;margin-bottom:6px;">
+      <div style="flex:1;">
+        <div style="font-size:.72em;color:var(--text-sub);margin-bottom:3px;">IP 주소</div>
+        <input id="comcigan-ip-input" class="input-box" type="text" placeholder="예: 222.106.100.23" style="font-size:.85em;">
+      </div>
+      <div style="width:90px;">
+        <div style="font-size:.72em;color:var(--text-sub);margin-bottom:3px;">포트</div>
+        <input id="comcigan-port-input" class="input-box" type="text" placeholder="예: 4082" style="font-size:.85em;">
+      </div>
+      <div style="display:flex;flex-direction:column;gap:4px;padding-top:18px;">
+        <button class="btn-mini" onclick="saveComciganUrl()" style="padding:0 12px;">저장</button>
+        <button class="btn-mini" onclick="clearComciganUrl()" style="padding:0 10px;color:#c0392b;">초기화</button>
+      </div>
+    </div>
+    <div id="comcigan-url-status" style="font-size:.72em;color:var(--text-sub);margin-top:2px;"></div>
   </div>
 </div>
 
@@ -2027,12 +2073,6 @@ button.password-set-btn,
           style="font-size:0.79em;padding:10px 12px;border-radius:8px;height:38px;">
       </div>
       <div style="font-size:0.68em;color:#e53935;font-weight:500;">공지사항 처리는 개발중입니다.</div>
-      <div>
-        <button onclick="showSchoolSelectDevToast()"
-          style="width:100%;padding:12px;font-size:0.9em;font-weight:700;background:var(--bg-inner);color:var(--text-main);border:1px solid var(--border);border-radius:10px;cursor:pointer;height:42px;display:flex;align-items:center;justify-content:center;gap:6px;">
-          <span style="font-size:0.95em;">🏫</span><span>소속교 선택</span>
-        </button>
-      </div>
       
       <!-- 공지사항 닫기 옵션 (개발중 - 숨김) -->
       
@@ -2229,23 +2269,20 @@ button.password-set-btn,
 
 <!-- ── 컴시간 시간표 모달 ─────────────────────────────── -->
 <div id="comcigan-modal" class="modal" >
-  <div class="modal-card" style="width:680px;max-width:94vw;max-height:88vh;display:flex;flex-direction:column;padding:0;overflow:hidden;" onclick="event.stopPropagation()">
+  <div class="modal-card" style="width:460px;max-width:94vw;max-height:88vh;display:flex;flex-direction:column;padding:0;overflow:hidden;" onclick="event.stopPropagation()">
     <div class="header-row" style="padding:12px 16px 0;">
       <h3>📅 시간표 자동 입력 (컴시간 연동)</h3>
       <button class="btn-mini" onclick="closeComciganModal()">닫기</button>
     </div>
     <div style="padding:14px 16px;border-bottom:1px solid var(--border);">
-      <div style="background:#fff9e6;border:1px solid #ffd54f;border-radius:10px;padding:12px;margin-bottom:12px;">
-        <div style="font-size:.82em;color:#f57f17;line-height:1.5;font-weight:500;">
+      <div style="background:#fff9e6;border:1px solid #ffd54f;border-radius:10px;padding:10px 12px;margin-bottom:12px;">
+        <div style="font-size:.80em;color:#f57f17;line-height:1.5;font-weight:500;">
           ⚠️ 컴시간 시간표 데이터에서 <b>성함 마지막 글자가 *로 표시</b>되어 있습니다.<br>
           앞 2글자만 입력하여 검색하세요. (예: 조인철 → 조인)
         </div>
       </div>
       
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:12px;">
-        <button onclick="showToast('IP 설정 기능은 개발중입니다.')" class="btn-mini" style="font-size:1.15em;padding:10px;display:flex;align-items:center;justify-content:center;gap:6px;"><span style="font-size:0.95em;">⚙️</span><span style="font-size:1.1em;">IP 설정</span></button>
-        <button onclick="showToast('학교 설정 기능은 개발중입니다.')" class="btn-mini" style="font-size:1.15em;padding:10px;display:flex;align-items:center;justify-content:center;gap:6px;"><span style="font-size:0.95em;">🏫</span><span style="font-size:1.1em;">소속교 설정</span></button>
-      </div>
+      <button onclick="openSchoolSelectModal()" class="btn-mini" style="width:100%;padding:8px;margin-bottom:12px;display:flex;align-items:center;justify-content:center;gap:6px;"><span style="font-size:0.95em;">⚙️</span><span style="font-size:1.0em;">IP/소속교 설정</span></button>
       
       <div>
         <div style="font-weight:700;margin-bottom:4px;font-size:.88em;">성함 <span style="font-size:.75em;color:var(--text-sub);font-weight:400;">(컴시간에 등록된 성함 입력)</span></div>
@@ -2506,6 +2543,12 @@ function openComciganIpSettings() {
 async function searchComciganTeacher() {
   const query = document.getElementById('comcigan-teacher').value.trim();
   if (!query) { showToast('❌ 성함을 입력하세요 (예: 조인)', 3000); document.getElementById('comcigan-teacher').focus(); return; }
+
+  // 컴시간 IP 설정 체크
+  if (!localStorage.getItem('comcigan_url')) {
+    showToast('❌ 컴시간 서버 IP가 설정되지 않았습니다.<br><span style="font-size:.88em;">⚙️ IP/소속교 설정에서 서버 IP와 포트를 입력해 주세요.</span>', 4000);
+    return;
+  }
   
   const displayDiv = document.getElementById('comcigan-display');
   displayDiv.innerHTML = '<div style="text-align:center;color:var(--text-sub);padding:15px;">검색 중...</div>';
@@ -7101,6 +7144,13 @@ function saveGoogleCalendarConfig(){
   localStorage.setItem(GCAL_WORK_ID_KEY, workCalendarId);
   if(academicCalendarId) localStorage.setItem(GCAL_ACADEMIC_ID_KEY, academicCalendarId);
   localStorage.setItem("teacher_gcal_calendar_id", workCalendarId);
+
+  // settings:save IPC로 파일에 영구 저장
+  window.electronAPI.invoke('settings:save', {
+    gcal_work_calendar_id: workCalendarId,
+    gcal_academic_calendar_id: academicCalendarId || '',
+    gcal_holiday_calendar_id: holidayCalendarId || ''
+  }).catch(e => console.warn('settings:save 실패:', e));
   
   GCAL_CONFIG.workCalendarId = workCalendarId;
   GCAL_CONFIG.holidayCalendarId = holidayCalendarId;
@@ -8462,6 +8512,9 @@ function cleanMealText(raw){
 
 
 
+let mealTypeIndex = 1; // 0:조식, 1:중식, 2:석식 (기본 중식)
+let mealRowsCache = []; // 현재 날짜 전체 식사 데이터 캐시
+
 async function fetchMealData(offset){
   const ymd = getMealDateByOffset(offset);
   const label = offset === 0 ? "오늘 급식" : "내일 급식";
@@ -8481,17 +8534,60 @@ async function fetchMealData(offset){
     const rows = data?.mealServiceDietInfo?.[1]?.row || [];
     if(!rows.length){
       renderMealCardContent(label, offset, [], "", "급식 정보가 없거나 인증키/학교 코드가 올바르지 않습니다.");
+      updateMealTypeTabs([]);
       return;
     }
 
-    const meal = rows[0];
-    const dishes = cleanMealText(meal.DDISH_NM);
-    const calorie = meal.CAL_INFO || "";
-    renderMealCardContent(label, offset, dishes, calorie, "");
+    mealRowsCache = rows;
+
+    // 식사 타입 탭 업데이트
+    updateMealTypeTabs(rows);
+
+    // 현재 선택된 타입 표시
+    renderMealByType(label, offset, rows);
   }catch(err){
     console.error(err);
     renderMealCardContent(label, offset, [], "", "급식 정보를 불러오지 못했습니다.");
   }
+}
+
+function setMealType(idx) {
+  mealTypeIndex = idx;
+  const label = mealDayOffset === 0 ? "오늘 급식" : "내일 급식";
+  renderMealByType(label, mealDayOffset, mealRowsCache);
+}
+
+function autoSelectMealType(availableTypes) {
+  // 시간 기준 자동 선택: ~10시 조식, ~14시 중식, 이후 석식
+  const hour = new Date().getHours();
+  let targetCode;
+  if (hour < 10) targetCode = '1';
+  else if (hour < 14) targetCode = '2';
+  else targetCode = '3';
+
+  // 해당 타입 없으면 첫 번째로
+  if (availableTypes.includes(targetCode)) {
+    mealTypeIndex = parseInt(targetCode) - 1;
+  } else {
+    mealTypeIndex = parseInt(availableTypes[0]) - 1;
+  }
+}
+
+function updateMealTypeTabs(rows) {
+  // 더 이상 별도 탭 div 사용 안 함 - renderMealCardContent 내부에서 처리
+  const availableTypes = rows.map(r => r.MMEAL_SC_CODE).filter(Boolean);
+  if (availableTypes.length > 1 && mealRowsCache.length === rows.length) {
+    // 최초 로드 시 시간 기준 자동 선택
+    autoSelectMealType(availableTypes);
+  }
+}
+
+function renderMealByType(label, offset, rows) {
+  const targetCode = String(mealTypeIndex + 1);
+  const meal = rows.find(r => r.MMEAL_SC_CODE === targetCode) || rows[0];
+  const dishes = cleanMealText(meal.DDISH_NM);
+  const calorie = meal.CAL_INFO || "";
+  renderMealCardContent(label, offset, dishes, calorie, "");
 }
 
 
@@ -8574,11 +8670,24 @@ function renderMealCardContent(label, offset, dishes, calorie, message){
   const accentColor = isToday ? "#e67e22" : "var(--accent)";
   const dateLabel = formatMealDateLabel(offset);
 
+  // 식사 타입 버튼 HTML 생성
+  const typeNames = { '1': '조식', '2': '중식', '3': '석식' };
+  const availableTypes = mealRowsCache.map(r => r.MMEAL_SC_CODE).filter(Boolean);
+  let mealTypeBtns = '';
+  if (availableTypes.length > 1) {
+    mealTypeBtns = availableTypes.map(code => {
+      const isActive = parseInt(code) - 1 === mealTypeIndex;
+      return `<button onclick="setMealType(${parseInt(code)-1})" style="font-size:.72em;font-weight:${isActive?'900':'600'};padding:2px 7px;border-radius:6px;border:1px solid ${isActive?'var(--accent)':'var(--border)'};background:${isActive?'var(--accent)':'transparent'};color:${isActive?'#fff':'var(--text-sub)'};cursor:pointer;">${typeNames[code]||code}</button>`;
+    }).join('');
+    mealTypeBtns = `<div style="display:flex;gap:3px;">${mealTypeBtns}</div>`;
+  }
+
   if(message){
     area.innerHTML = `
-      <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;">
-        <span style="font-size:.82em;font-weight:900;color:${accentColor};">${label}</span>
-        <span style="font-size:.74em;color:var(--text-sub);font-weight:700;">${dateLabel}</span>
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;flex-wrap:wrap;">
+        <span style="font-size:.86em;font-weight:900;color:${accentColor};">${label}</span>
+        <span style="font-size:.80em;color:var(--text-sub);font-weight:700;">${dateLabel}</span>
+        ${mealTypeBtns}
       </div>
       <div style="background:var(--bg-inner);border:1px dashed var(--border);border-radius:12px;padding:10px 12px;color:var(--text-sub);font-size:.82em;line-height:1.5;">${message}</div>
     `;
@@ -8593,16 +8702,17 @@ function renderMealCardContent(label, offset, dishes, calorie, message){
     </div>`).join("");
 
   area.innerHTML = `
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:7px;gap:6px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:7px;">
       <div style="display:flex;align-items:center;gap:6px;">
-        <span style="font-size:.86em;font-weight:900;color:#fff;background:${accentColor};border-radius:8px;padding:2px 9px;">${label}</span>
-        <span style="font-size:.76em;color:var(--text-sub);font-weight:700;">${dateLabel}</span>
+        <span style="font-size:.90em;font-weight:900;color:#fff;background:${accentColor};border-radius:8px;padding:2px 9px;">${label}</span>
+        <span style="font-size:.82em;color:var(--text-sub);font-weight:700;">${dateLabel}</span>
       </div>
-      ${calorie ? `<span style="font-size:.74em;color:var(--text-sub);font-weight:800;white-space:nowrap;">${escapeHtml(calorie)}</span>` : ""}
+      ${mealTypeBtns}
     </div>
     <div style="display:flex;flex-direction:column;gap:0;background:var(--bg-inner);border:1px solid var(--border);border-radius:12px;padding:6px 10px;overflow-y:auto;flex:1;min-height:0;">
       ${dishRows}
     </div>
+    ${calorie ? `<div style="text-align:right;font-size:.75em;color:var(--text-sub);font-weight:700;margin-top:3px;padding-right:2px;">${escapeHtml(calorie)}</div>` : ""}
   `;
 }
 
@@ -9041,6 +9151,40 @@ document.addEventListener("DOMContentLoaded", function(){
   // 로딩 토스트
   setTimeout(() => showToast('대시보드 데이터 불러오는 중...', 3000), 300);
 
+  // settings:load로 gcal calendar ID 복원
+  window.electronAPI.invoke('settings:load').then(result => {
+    if (result?.ok && result.settings) {
+      const s = result.settings;
+      if (s.gcal_work_calendar_id && !localStorage.getItem(GCAL_WORK_ID_KEY)) {
+        localStorage.setItem(GCAL_WORK_ID_KEY, s.gcal_work_calendar_id);
+        GCAL_CONFIG.workCalendarId = s.gcal_work_calendar_id;
+      }
+      if (s.gcal_academic_calendar_id && !localStorage.getItem(GCAL_ACADEMIC_ID_KEY)) {
+        localStorage.setItem(GCAL_ACADEMIC_ID_KEY, s.gcal_academic_calendar_id);
+        GCAL_CONFIG.academicCalendarId = s.gcal_academic_calendar_id;
+      }
+      if (s.gcal_holiday_calendar_id && !localStorage.getItem(GCAL_HOLIDAY_ID_KEY)) {
+        localStorage.setItem(GCAL_HOLIDAY_ID_KEY, s.gcal_holiday_calendar_id);
+        GCAL_CONFIG.holidayCalendarId = s.gcal_holiday_calendar_id;
+      }
+      // 학교 설정 복원
+      if (s.school_name) localStorage.setItem('school_name', s.school_name);
+      if (s.school_code) localStorage.setItem('school_code', s.school_code);
+      if (s.school_office_code) localStorage.setItem('school_office_code', s.school_office_code);
+      if (s.school_homepage) localStorage.setItem('school_homepage', s.school_homepage);
+      if (s.meal_office_code && !localStorage.getItem('teacher_meal_office_code')) {
+        localStorage.setItem('teacher_meal_office_code', s.meal_office_code);
+      }
+      if (s.meal_school_code && !localStorage.getItem('teacher_meal_school_code')) {
+        localStorage.setItem('teacher_meal_school_code', s.meal_school_code);
+      }
+      // 컴시간 URL 복원
+      if (s.comcigan_url) localStorage.setItem('comcigan_url', s.comcigan_url);
+
+      if (GCAL_CONFIG.workCalendarId) refreshGoogleCalendar(false);
+    }
+  }).catch(e => console.warn('settings:load 실패:', e));
+
   // 시간표 표시 config 기본값 설정
   if (!localStorage.getItem('timetable_display_config')) {
     localStorage.setItem('timetable_display_config', JSON.stringify({ mode: 'auto' }));
@@ -9329,9 +9473,127 @@ function closeAutoLoginSettingsModal(){
   document.getElementById('auto-login-settings-modal').style.display = 'none';
   window.electronAPI?.resumeWidget();
 }
-function showSchoolSelectDevToast(){
-  showToast('소속교는 현재 \'명호중학교\'로 설정되어 있습니다.\n소속교 변경 기능은 개발 중입니다.', 3000);
+// ── 소속교 설정 모달 ───────────────────────────────────
+const NEIS_API_KEY = '30387731c5eb4040a312642af1dfcaf5';
+
+async function openSchoolSelectModal() {
+  const schoolName = localStorage.getItem('school_name') || '';
+  const comciganUrl = localStorage.getItem('comcigan_url') || '';
+  const infoEl = document.getElementById('school-current-info');
+  infoEl.innerHTML = schoolName ? `현재 소속교: <b>${schoolName}</b>` : '소속교가 설정되지 않았습니다.';
+
+  // IP/포트 분리해서 표시
+  if (comciganUrl) {
+    const match = comciganUrl.match(/http:\/\/([^:]+):(\d+)/);
+    if (match) {
+      document.getElementById('comcigan-ip-input').value = match[1];
+      document.getElementById('comcigan-port-input').value = match[2];
+    }
+  } else {
+    document.getElementById('comcigan-ip-input').value = '';
+    document.getElementById('comcigan-port-input').value = '';
+  }
+  document.getElementById('comcigan-url-status').textContent = comciganUrl ? `현재: ${comciganUrl}` : '';
+  document.getElementById('school-search-results').innerHTML = '';
+  document.getElementById('school-search-input').value = '';
+  document.getElementById('school-select-modal').style.display = 'flex';
 }
+
+function closeSchoolSelectModal() {
+  document.getElementById('school-select-modal').style.display = 'none';
+}
+
+async function searchSchoolNEIS() {
+  const query = document.getElementById('school-search-input').value.trim();
+  if (!query) { showToast('❌ 학교명을 입력하세요.', 2000); return; }
+
+  const resultsEl = document.getElementById('school-search-results');
+  resultsEl.innerHTML = '<div style="text-align:center;color:var(--text-sub);padding:10px;">검색 중...</div>';
+
+  try {
+    const url = `https://open.neis.go.kr/hub/schoolInfo?KEY=${NEIS_API_KEY}&Type=json&pSize=10&SCHUL_NM=${encodeURIComponent(query)}`;
+    const res = await fetch(url);
+    const data = await res.json();
+    const schools = data?.schoolInfo?.[1]?.row;
+
+    if (!schools || schools.length === 0) {
+      resultsEl.innerHTML = '<div style="text-align:center;color:var(--text-sub);padding:10px;">검색 결과가 없습니다.</div>';
+      return;
+    }
+
+    resultsEl.innerHTML = '';
+    schools.forEach(school => {
+      const btn = document.createElement('button');
+      btn.className = 'btn-mini';
+      btn.style.cssText = 'width:100%;padding:10px 14px;text-align:left;display:flex;flex-direction:column;gap:2px;';
+      btn.innerHTML = `<span style="font-weight:800;font-size:.88em;">${school.SCHUL_NM}</span><span style="font-size:.72em;color:var(--text-sub);">${school.LCTN_SC_NM} · ${school.SCHUL_KND_SC_NM}</span>`;
+      btn.onclick = () => selectSchool(school);
+      resultsEl.appendChild(btn);
+    });
+  } catch(e) {
+    resultsEl.innerHTML = '<div style="text-align:center;color:#e74c3c;padding:10px;">검색 실패. 네트워크를 확인하세요.</div>';
+  }
+}
+
+async function selectSchool(school) {
+  const schoolName = school.SCHUL_NM;
+  const officeCode = school.ATPT_OFCDC_SC_CODE;
+  const schoolCode = school.SD_SCHUL_CODE;
+  const homepage = school.HMPG_ADRES || '';
+
+  localStorage.setItem('school_name', schoolName);
+  localStorage.setItem('school_office_code', officeCode);
+  localStorage.setItem('school_code', schoolCode);
+  localStorage.setItem('school_homepage', homepage);
+  localStorage.setItem('teacher_meal_office_code', officeCode);
+  localStorage.setItem('teacher_meal_school_code', schoolCode);
+
+  if (typeof MEAL_CONFIG !== 'undefined') {
+    MEAL_CONFIG.officeCode = officeCode;
+    MEAL_CONFIG.schoolCode = schoolCode;
+  }
+
+  await window.electronAPI.invoke('settings:save', {
+    school_name: schoolName,
+    school_office_code: officeCode,
+    school_code: schoolCode,
+    school_homepage: homepage,
+    meal_office_code: officeCode,
+    meal_school_code: schoolCode
+  });
+
+  await window.electronAPI.invoke('comcigan:setConfig', { schoolName });
+
+  document.getElementById('school-current-info').innerHTML = `소속교 설정 완료: <b>${schoolName}</b>`;
+  document.getElementById('school-search-results').innerHTML = '';
+  showToast(`✅ <b>${schoolName}</b>으로 소속교가 설정되었습니다.`, 3000);
+
+  if (typeof fetchMealData === 'function') fetchMealData(mealDayOffset);
+}
+
+async function saveComciganUrl() {
+  const ip = document.getElementById('comcigan-ip-input').value.trim();
+  const port = document.getElementById('comcigan-port-input').value.trim();
+  if (!ip || !port) { showToast('❌ IP 주소와 포트를 모두 입력하세요.', 2000); return; }
+  const url = `http://${ip}:${port}`;
+  localStorage.setItem('comcigan_url', url);
+  await window.electronAPI.invoke('settings:save', { comcigan_url: url });
+  await window.electronAPI.invoke('comcigan:setConfig', { url });
+  document.getElementById('comcigan-url-status').textContent = `저장됨: ${url}`;
+  showToast('✅ 컴시간 서버가 저장되었습니다.', 2000);
+}
+
+async function clearComciganUrl() {
+  localStorage.removeItem('comcigan_url');
+  document.getElementById('comcigan-ip-input').value = '';
+  document.getElementById('comcigan-port-input').value = '';
+  document.getElementById('comcigan-url-status').textContent = '';
+  await window.electronAPI.invoke('settings:save', { comcigan_url: '' });
+  showToast('컴시간 URL이 초기화되었습니다.', 2000);
+}
+
+function showSchoolSelectDevToast() { openSchoolSelectModal(); }
+
 async function saveAutoLoginSettings(){
   if (!window.electronAPI?.autoLoginSaveSettings) { alert('Electron 환경에서만 사용 가능합니다.'); return; }
   const certName  = document.getElementById('al-cert-name').value.trim();
