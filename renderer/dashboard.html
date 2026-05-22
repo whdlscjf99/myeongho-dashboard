@@ -1818,7 +1818,7 @@ button.password-set-btn,
         </div>
         <div style="font-size:.72em;color:var(--text-sub);line-height:1.7;max-width:480px;">
           <b>📌 API Key 발급 방법</b><br>
-          1. <a href="#" onclick="event.preventDefault();openUrlInBrowser('https://console.anthropic.com');return false;" style="color:var(--accent);text-decoration:underline;cursor:pointer;">console.anthropic.com</a> 접속<br>
+          1. <a href="#" onclick="event.preventDefault();openExternalUrl('https://console.anthropic.com');return false;" style="color:var(--accent);text-decoration:underline;cursor:pointer;">console.anthropic.com</a> 접속<br>
           2. 로그인 후 "API Keys" 메뉴 클릭<br>
           3. "Create Key" 버튼으로 새 키 생성<br>
           4. 생성된 키를 복사하여 설정에 입력
@@ -1871,7 +1871,7 @@ button.password-set-btn,
     </div>
     <div style="font-size:.74em;color:var(--text-sub);line-height:1.6;background:var(--bg-inner);padding:10px;border-radius:6px;margin-bottom:12px;">
       <b>📌 발급 방법</b><br>
-      1. <a href="#" onclick="event.preventDefault();openUrlInBrowser('https://console.anthropic.com');return false;" style="color:var(--accent);text-decoration:underline;cursor:pointer;">console.anthropic.com</a> 접속<br>
+      1. <a href="#" onclick="event.preventDefault();openExternalUrl('https://console.anthropic.com');return false;" style="color:var(--accent);text-decoration:underline;cursor:pointer;">console.anthropic.com</a> 접속<br>
       2. 로그인 → API Keys → Create Key<br>
       3. 생성된 키 복사 후 위에 입력
     </div>
@@ -3794,7 +3794,7 @@ function renderReadonlyDaySection(title, items, options = {}){
   let headerAddon = "";
   if(options.linkLabel){
     headerAddon = openableItem
-      ? `<a class="day-event-link section-link" href="#" onclick="event.preventDefault();openUrlInBrowser('${openableItem.htmlLink}');return false;">${options.linkLabel}</a>`
+      ? `<a class="day-event-link section-link" href="#" onclick="event.preventDefault();openExternalUrl('${openableItem.htmlLink}');return false;">${options.linkLabel}</a>`
       : `<span class="day-modal-note section-note">${options.emptyLinkNote || '연결된 링크 없음'}</span>`;
   }
   section.innerHTML = `<div class="day-modal-section-head"><div class="day-modal-section-title">${title}</div>${headerAddon}</div>`;
