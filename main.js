@@ -745,8 +745,8 @@ async function initComcigan() {
     const script  = scripts[1] || scripts[0] || '';
     const route   = script.match(/\.\/\d+\?\d+l/)?.[0];
     const PREFIX  = script.match(/'(\d+_)'/)?.[1];
-    const daynum  = parseInt(script.match(/일일자료=Q자료\(자료\.자료(\d+)/)?.[1]);
-    const thnum   = parseInt(script.match(/성명=자료\.자료(\d+)/)?.[1]);
+    const daynum  = parseInt(script.match(/원자료=Q자료\(자료\.자료(\d+)/)?.[1] || script.match(/일일자료=Q자료\(자료\.자료(\d+)/)?.[1]);
+    const thnum   = parseInt(script.match(/성명=Q성명\(자료\.자료(\d+)\[th\]\)/)?.[1] || script.match(/성명=자료\.자료(\d+)/)?.[1] || script.match(/자료\.자료(\d+)[^;]*성명/)?.[1]);
     const sbnum   = parseInt(script.match(/자료\.자료(\d+)\[sb\]/)?.[1]);
     if (!route || !PREFIX) throw new Error('라우트 파싱 실패');
     comciganCache = {

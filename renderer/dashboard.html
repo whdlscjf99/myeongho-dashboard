@@ -1024,30 +1024,33 @@ button.password-set-btn,
 </style>
 
 
-  <!-- 배포용: 개인 정보 localStorage 초기화 (빌드 시 삽입) -->
+<!-- 배포용: 개인 정보 localStorage 초기화 (빌드 시 삽입) -->
   <script>
   (function() {
-    var keysToRemove = [
-    "comcigan_teacher",
-    "comcigan_teacher_fullname",
-    "comcigan_teacher_idx",
-    "comcigan_ip",
-    "comcigan_port",
-    "teacher_class_schedule",
-    "timetable_grade",
-    "timetable_class",
-    "timetable_last_update",
-    "timetable_last_timestamp",
-    "teacher_gcal_work_calendar_id",
-    "teacher_gcal_academic_calendar_id",
-    "teacher_gcal_calendar_id",
-    "teacher_gcal_api_key",
-    "teacher_dday_items",
-    "teacher_dday_index",
-    "gsheet_default_browser"
-];
-    keysToRemove.forEach(function(k) { localStorage.removeItem(k); });
-    console.log('[build] 개인 정보 localStorage 초기화 완료');
+    // 빌드된 앱에서만 실행 (개발 환경 제외)
+    if (!window.location.href.startsWith('file:///')) {
+      var keysToRemove = [
+        "comcigan_teacher",
+        "comcigan_teacher_fullname",
+        "comcigan_teacher_idx",
+        "comcigan_ip",
+        "comcigan_port",
+        "teacher_class_schedule",
+        "timetable_grade",
+        "timetable_class",
+        "timetable_last_update",
+        "timetable_last_timestamp",
+        "teacher_gcal_work_calendar_id",
+        "teacher_gcal_academic_calendar_id",
+        "teacher_gcal_calendar_id",
+        "teacher_gcal_api_key",
+        "teacher_dday_items",
+        "teacher_dday_index",
+        "gsheet_default_browser"
+      ];
+      keysToRemove.forEach(function(k) { localStorage.removeItem(k); });
+      console.log('[build] 개인 정보 localStorage 초기화 완료');
+    }
   })();
   </script>
 </head>
